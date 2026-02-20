@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoVeloce - Premium Car Showcase</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Bebas+Neue&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Modal Styles -->
+    <style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s ease;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-container {
+        background: var(--dark-light);
+        border-radius: 25px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        border: 1px solid rgba(255, 77, 0, 0.2);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        transform: scale(0.9) translateY(20px);
+        transition: transform 0.4s ease;
+    }
+    .modal-overlay.active .modal-container {
+        transform: scale(1) translateY(0);
+    }
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        background: var(--dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: var(--light);
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: var(--transition);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-close:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        transform: rotate(90deg);
+    }
+    .modal-header {
+        padding: 30px 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+    }
+    .modal-header h2 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    .modal-subtitle {
+        color: var(--gray);
+        font-size: 1rem;
+    }
+    .modal-body {
+        padding: 30px 40px;
+    }
+    .view-toggle {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    .view-toggle-btn {
+        padding: 14px 30px;
+        background: var(--dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        color: var(--light);
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+    .view-toggle-btn:hover {
+        border-color: var(--primary);
+    }
+    .view-toggle-btn.active {
+        background: var(--gradient);
+        border-color: var(--primary);
+    }
+    .view-content {
+        animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .car-preview {
+        position: relative;
+        margin-bottom: 30px;
+        border-radius: 20px;
+        overflow: hidden;
+        background: var(--dark);
+    }
+    .car-preview img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        transition: filter 0.4s ease;
+    }
+    .car-reflection {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 50%;
+        background: linear-gradient(to top, rgba(255, 77, 0, 0.1), transparent);
+        pointer-events: none;
+    }
+    .interior-preview {
+        position: relative;
+    }
+    .interior-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    }
+    .interior-features {
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        flex-wrap: wrap;
+    }
+    .interior-feature {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--light);
+        font-size: 0.85rem;
+    }
+    .interior-feature i {
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+    .color-section {
+        margin-bottom: 25px;
+    }
+    .color-section h3 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+    .color-hint {
+        color: var(--gray);
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    .color-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+    .color-option {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 3px solid transparent;
+        position: relative;
+    }
+    .color-option:hover {
+        transform: scale(1.15);
+    }
+    .color-option.active {
+        border-color: var(--light);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    .color-tooltip {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dark);
+        color: var(--light);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .color-option:hover .color-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    .selected-color {
+        text-align: center;
+        margin-top: 15px;
+        color: var(--gray);
+        font-size: 0.95rem;
+    }
+    .selected-color span {
+        color: var(--primary);
+        font-weight: 600;
+    }
+    .modal-footer {
+        padding: 25px 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .price-display {
+        display: flex;
+        flex-direction: column;
+    }
+    .price-label {
+        color: var(--gray);
+        font-size: 0.85rem;
+    }
+    .price-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    .modal-actions {
+        display: flex;
+        gap: 15px;
+    }
+    @media (max-width: 768px) {
+        .modal-container {
+            width: 95%;
+            max-height: 85vh;
+        }
+        .modal-header, .modal-body, .modal-footer {
+            padding: 20px;
+        }
+        .view-toggle {
+            flex-wrap: wrap;
+        }
+        .interior-features {
+            gap: 15px;
+        }
+        .modal-footer {
+            flex-direction: column;
+            text-align: center;
+        }
+        .modal-actions {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="preloader-content">
+            <div class="car-loader">
+                <i class="fas fa-car"></i>
+            </div>
+            <div class="loader-text">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <span class="logo-icon"><i class="fas fa-bolt"></i></span>
+            <span class="logo-text">AutoVeloce</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#cars">Cars</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#testimonials">Reviews</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="nav-right">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+            <button class="cart-btn"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></button>
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg-animation">
+            <div class="particles"></div>
+            <div class="grid-lines"></div>
+        </div>
+        <div class="hero-content animate__animated animate__fadeInLeft">
+            <span class="hero-badge">New Arrival 2024</span>
+            <h1 class="hero-title">Experience the <span class="gradient-text">Future</span> of <span class="gradient-text">Driving</span></h1>
+            <p class="hero-subtitle">Discover unparalleled performance, luxury, and innovation in every model. Premium craftsmanship meets cutting-edge technology.</p>
+            <div class="hero-buttons">
+                <a href="#cars" class="btn btn-primary">
+                    <span>Explore Cars</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#contact" class="btn btn-outline">
+                    <i class="fas fa-play"></i>
+                    <span>Book Test Drive</span>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="stat-value">0-60</span>
+                    <span class="stat-label">2.8s</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-value">Top Speed</span>
+                    <span class="stat-label">250+ mph</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-value">Range</span>
+                    <span class="stat-label">400 mi</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-car animate__animated animate__fadeInRight">
+            <div class="car-image">
+                <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800" alt="Luxury Car">
+                <div class="car-glow"></div>
+                <div class="car-shine"></div>
+            </div>
+            <div class="car-features-overlay">
+                <div class="feature-tag">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>320 mph</span>
+                </div>
+                <div class="feature-tag">
+                    <i class="fas fa-bolt"></i>
+                    <span>800 HP</span>
+                </div>
+                <div class="feature-tag">
+                    <i class="fas fa-leaf"></i>
+                    <span>Eco Mode</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to Explore</span>
+            <div class="scroll-arrow">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-track">
+            <div class="stat-item animate__animated">
+                <span class="stat-number" data-count="150">0</span>
+                <span class="stat-label">Premium Models</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item animate__animated">
+                <span class="stat-number" data-count="50">0</span>
+                <span class="stat-label">Years Excellence</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item animate__animated">
+                <span class="stat-number" data-count="1">0</span>
+                <span class="stat-label">Million+ Customers</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item animate__animated">
+                <span class="stat-number" data-count="24">0</span>
+                <span class="stat-label">/7 Support</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item animate__animated">
+                <span class="stat-number" data-count="500">0</span>
+                <span class="stat-label">Service Centers</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cars Showcase -->
+    <section id="cars" class="cars-section">
+        <div class="section-header">
+            <span class="section-badge">Our Collection</span>
+            <h2 class="section-title">Discover <span class="gradient-text">Premium</span> Vehicles</h2>
+            <p class="section-subtitle">Experience the pinnacle of automotive engineering with our curated selection of high-performance vehicles</p>
+        </div>
+        
+        <div class="car-filters">
+            <button class="filter-btn active" data-filter="all">
+                <i class="fas fa-th-large"></i>
+                <span>All</span>
+            </button>
+            <button class="filter-btn" data-filter="sports">
+                <i class="fas fa-flag-checkered"></i>
+                <span>Sports</span>
+            </button>
+            <button class="filter-btn" data-filter="luxury">
+                <i class="fas fa-crown"></i>
+                <span>Luxury</span>
+            </button>
+            <button class="filter-btn" data-filter="suv">
+                <i class="fas fa-mountain"></i>
+                <span>SUV</span>
+            </button>
+            <button class="filter-btn" data-filter="electric">
+                <i class="fas fa-charging-station"></i>
+                <span>Electric</span>
+            </button>
+        </div>
+
+        <div class="cars-grid">
+            <!-- Car Card 1 -->
+            <div class="car-card" data-category="sports">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=600" alt="Sports Car">
+                    <div class="car-badge">Hot</div>
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(4.8)</span>
+                    </div>
+                    <h3>Apex GT Turbo</h3>
+                    <p class="car-type">Sports Car</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 320 mph</span>
+                        <span><i class="fas fa-gas-pump"></i> Hybrid</span>
+                        <span><i class="fas fa-cog"></i> Auto</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot active" style="background: #ff4d00"></span>
+                        <span class="color-dot" style="background: #1a1a1a"></span>
+                        <span class="color-dot" style="background: #ffffff"></span>
+                        <span class="color-dot" style="background: #0066ff"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$189,900</span>
+                            <span class="price-original">$210,000</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Card 2 -->
+            <div class="car-card" data-category="luxury">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600" alt="Luxury Car">
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>(5.0)</span>
+                    </div>
+                    <h3>Royal Sedan Platinum</h3>
+                    <p class="car-type">Luxury Sedan</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 180 mph</span>
+                        <span><i class="fas fa-gas-pump"></i> Petrol</span>
+                        <span><i class="fas fa-cog"></i> Auto</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot" style="background: #000000"></span>
+                        <span class="color-dot active" style="background: #c0c0c0"></span>
+                        <span class="color-dot" style="background: #000080"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$145,000</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Card 3 -->
+            <div class="car-card" data-category="suv">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600" alt="SUV">
+                    <div class="car-badge">Popular</div>
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>(4.9)</span>
+                    </div>
+                    <h3>Terra Grand 4X4</h3>
+                    <p class="car-type">Premium SUV</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 150 mph</span>
+                        <span><i class="fas fa-gas-pump"></i> Diesel</span>
+                        <span><i class="fas fa-cog"></i> Auto</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot active" style="background: #1a1a1a"></span>
+                        <span class="color-dot" style="background: #ffffff"></span>
+                        <span class="color-dot" style="background: #228b22"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$98,500</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Card 4 -->
+            <div class="car-card" data-category="electric">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=600" alt="Electric Car">
+                    <div class="car-badge eco">Eco</div>
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>(4.7)</span>
+                    </div>
+                    <h3>Volt E-Series</h3>
+                    <p class="car-type">Electric</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 200 mph</span>
+                        <span><i class="fas fa-bolt"></i> 400 mi</span>
+                        <span><i class="fas fa-charging-station"></i> 30min</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot active" style="background: #00ff88"></span>
+                        <span class="color-dot" style="background: #ffffff"></span>
+                        <span class="color-dot" style="background: #1a1a1a"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$125,000</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Card 5 -->
+            <div class="car-card" data-category="sports">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600" alt="Sports Car">
+                    <div class="car-badge">Limited</div>
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>(5.0)</span>
+                    </div>
+                    <h3>Phantom Racer</h3>
+                    <p class="car-type">Track Edition</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 350 mph</span>
+                        <span><i class="fas fa-gas-pump"></i> V12</span>
+                        <span><i class="fas fa-cog"></i> Manual</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot active" style="background: #ff0000"></span>
+                        <span class="color-dot" style="background: #1a1a1a"></span>
+                        <span class="color-dot" style="background: #ffd700"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$285,000</span>
+                            <span class="price-original">$320,000</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Card 6 -->
+            <div class="car-card" data-category="luxury">
+                <div class="car-card-image">
+                    <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600" alt="Luxury Car">
+                    <div class="car-actions">
+                        <button class="action-btn" title="Quick View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn" title="Add to Compare"><i class="fas fa-balance-scale"></i></button>
+                        <button class="action-btn" title="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+                <div class="car-card-content">
+                    <div class="car-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(4.6)</span>
+                    </div>
+                    <h3>Emperor Executive</h3>
+                    <p class="car-type">Executive Suite</p>
+                    <div class="car-specs">
+                        <span><i class="fas fa-tachometer-alt"></i> 170 mph</span>
+                        <span><i class="fas fa-bolt"></i> Electric</span>
+                        <span><i class="fas fa-cog"></i> Auto</span>
+                    </div>
+                    <div class="car-colors">
+                        <span class="color-dot active" style="background: #1a1a1a"></span>
+                        <span class="color-dot" style="background: #c0c0c0"></span>
+                        <span class="color-dot" style="background: #000080"></span>
+                    </div>
+                    <div class="car-price">
+                        <div class="price-info">
+                            <span class="price">$175,000</span>
+                        </div>
+                        <button class="btn-details">Configure</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-all-container">
+            <a href="#cars" class="btn btn-primary btn-large">
+                <span>View All Models</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="features-bg">
+            <div class="feature-circle circle-1"></div>
+            <div class="feature-circle circle-2"></div>
+        </div>
+        <div class="section-header">
+            <span class="section-badge">Why Choose Us</span>
+            <h2 class="section-title">Experience <span class="gradient-text">Excellence</span></h2>
+            <p class="section-subtitle">World-class features that set us apart from the competition</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>Advanced Safety</h3>
+                <p>State-of-the-art safety systems with AI-powered collision prevention, 360° monitoring, and autonomous emergency braking</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>Eco-Friendly</h3>
+                <p>Commitment to sustainability with hybrid and electric options, reducing carbon footprint without compromising performance</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>Peak Performance</h3>
+                <p>Engineered for adrenaline with powerful engines, precision handling, and track-ready specifications</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>Smart Connectivity</h3>
+                <p>Seamless integration with your digital life through advanced infotainment, voice control, and mobile apps</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-couch"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>Luxury Comfort</h3>
+                <p>Premium interiors with finest materials, massage seats, climate control, and ergonomic design for ultimate comfort</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <div class="icon-inner">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                </div>
+                <div class="feature-glow"></div>
+                <h3>24/7 Support</h3>
+                <p>Round-the-clock roadside assistance, maintenance services, and warranty coverage wherever you go</p>
+                <div class="feature-learn">
+                    <span>Learn More</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials-section">
+        <div class="section-header">
+            <span class="section-badge">Testimonials</span>
+            <h2 class="section-title">What Clients <span class="gradient-text">Say</span></h2>
+            <p class="section-subtitle">Hear from our satisfied customers around the world</p>
+        </div>
+
+        <div class="testimonials-slider">
+            <div class="testimonial-track">
+                <div class="testimonial-card">
+                    <div class="testimonial-image">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" alt="Customer">
+                    </div>
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left quote-icon"></i>
+                        <p>The Apex GT Turbo exceeded all my expectations. The performance is unmatched and the interior is absolutely stunning.</p>
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>James Mitchell</h4>
+                        <span>CEO, TechCorp</span>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-image">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Customer">
+                    </div>
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left quote-icon"></i>
+                        <p>AutoVeloce redefined what luxury means to me. The Royal Sedan Platinum is a masterpiece on wheels.</p>
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>Sarah Chen</h4>
+                        <span>Entrepreneur</span>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-image">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" alt="Customer">
+                    </div>
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left quote-icon"></i>
+                        <p>Best investment I've made. The customer service and after-sales support are exceptional. Highly recommended!</p>
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <h4>Michael Roberts</h4>
+                        <span>Professional Athlete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-controls">
+            <button class="testimonial-btn prev"><i class="fas fa-chevron-left"></i></button>
+            <div class="testimonial-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+            <button class="testimonial-btn next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+
+    <!-- Test Drive Section -->
+    <section class="test-drive">
+        <div class="test-drive-visual">
+            <div class="test-drive-car">
+                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800" alt="Test Drive">
+                <div class="floating-card card-1">
+                    <i class="fas fa-road"></i>
+                    <span>Free Test Drive</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Home Pickup</span>
+                </div>
+            </div>
+        </div>
+        <div class="test-drive-content">
+            <span class="section-badge">Book Now</span>
+            <h2>Schedule Your <span class="gradient-text">Test Drive</span></h2>
+            <p>Experience the thrill of driving your dream car. Our expert team will deliver the car to your location for a hassle-free test drive experience.</p>
+            
+            <div class="benefits-list">
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Free home delivery</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>No commitment required</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Expert guidance included</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Flexible scheduling</span>
+                </div>
+            </div>
+
+            <form class="test-drive-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Email Address" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" placeholder="Phone Number" required>
+                    </div>
+                    <div class="form-group">
+                        <i class="fas fa-car"></i>
+                        <select required>
+                            <option value="">Select Model</option>
+                            <option value="apex">Apex GT Turbo</option>
+                            <option value="royal">Royal Sedan Platinum</option>
+                            <option value="terra">Terra Grand 4X4</option>
+                            <option value="volt">Volt E-Series</option>
+                            <option value="phantom">Phantom Racer</option>
+                            <option value="emperor">Emperor Executive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group full">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="date" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span>Schedule Test Drive</span>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="about-visual">
+            <div class="about-image-1">
+                <img src="https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=600" alt="About AutoVeloce">
+                <div class="experience-badge">
+                    <span class="exp-number">50</span>
+                    <span class="exp-text">Years</span>
+                </div>
+            </div>
+            <div class="about-image-2">
+                <img src="https://images.unsplash.com/photo-1493238792000-8113da705763?w=400" alt="Factory">
+            </div>
+        </div>
+        <div class="about-content">
+            <span class="section-badge">Our Legacy</span>
+            <h2>Driving Innovation Since <span class="gradient-text">1974</span></h2>
+            <p>For five decades, AutoVeloce has been at the forefront of automotive innovation. Our commitment to excellence, quality, and customer satisfaction has made us a global leader in the premium automotive industry.</p>
+            
+            <div class="about-features">
+                <div class="about-feature">
+                    <div class="feature-icon-small">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Award Winning</h4>
+                        <p>200+ Industry Awards</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="feature-icon-small">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Global Presence</h4>
+                        <p>50+ Countries</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="feature-icon-small">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Expert Team</h4>
+                        <p>10K+ Professionals</p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="#contact" class="btn btn-primary">
+                <span>Learn More</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+        <div class="section-header">
+            <span class="section-badge">Get In Touch</span>
+            <h2 class="section-title">Let's <span class="gradient-text">Connect</span></h2>
+            <p class="section-subtitle">We'd love to hear from you. Reach out for inquiries, support, or just to say hello.</p>
+        </div>
+
+        <div class="contact-container">
+            <div class="contact-info">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Showroom</h4>
+                        <p>123 Luxury Lane<br>Beverly Hills, CA 90210</p>
+                    </div>
+                </div>
